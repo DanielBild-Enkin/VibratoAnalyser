@@ -7,6 +7,10 @@ package vibratoanalyser;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -26,13 +30,21 @@ public class VibratoAnalyser {
     private AudioInputStream audioStream;
     private AudioFormat audioFormat;
     private SourceDataLine sourceLine;
-    
-    
+
     public VibratoAnalyser() {
 
     }
 
-    public void playSound(String filename){
+    public static int[] toDoubleArray(byte[] byteArray) {
+        int times = Integer.SIZE / Byte.SIZE;
+        int[] doubles = new int[byteArray.length / times];
+        for (int ii = 0; ii < doubles.length; ii++) {
+            doubles[ii] = ByteBuffer.wrap(byteArray, ii * times, times).getInt();
+        }
+        return doubles;
+    }
+
+    public void playSound(String filename) {
 
         String strFilename = filename;
 
@@ -45,7 +57,7 @@ public class VibratoAnalyser {
 
         try {
             audioStream = AudioSystem.getAudioInputStream(soundFile);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -63,36 +75,55 @@ public class VibratoAnalyser {
             e.printStackTrace();
             System.exit(1);
         }
-
         sourceLine.start();
 
         int nBytesRead = 0;
-        byte[] abData = new byte[BUFFER_SIZE];
+        byte[] abData = new byte[1024 * 16];
+//
+        try {
+            nBytesRead = audioStream.read(abData, 0, abData.length);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        double sum;
+        int[] doubles; 
         while (nBytesRead != -1) {
+
             try {
                 nBytesRead = audioStream.read(abData, 0, abData.length);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (nBytesRead >= 0) {
-                @SuppressWarnings("unused")
-                int nBytesWritten = sourceLine.write(abData, 0, nBytesRead);
+
+            doubles = toDoubleArray(abData);
+
+//            System.out.println(Arrays.toString(doubles));
+            sum = 0;
+            for (int ii = 0; ii < doubles.length; ii++) {
+
+                sum = sum + doubles[ii];
+
             }
+
+            System.out.println(sum);
+
         }
 
         sourceLine.drain();
+
         sourceLine.close();
-    }      
+    }
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        
+
         VibratoAnalyser va = new VibratoAnalyser();
         va.playSound("/home/daniel/VibratoAnalyser/VibratoAnalyser/testdata/example_vibrato.wav");
-        
-        
+
     }
 
 }
