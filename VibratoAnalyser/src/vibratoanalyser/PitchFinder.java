@@ -1,14 +1,17 @@
 package vibratoanalyser;
 
+// Fourier Transform Stuff
 import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.DftNormalization;
 import org.apache.commons.math3.transform.TransformType;
 import org.apache.commons.math3.complex.Complex;
 
-import java.util.Random;
-import java.util.Arrays;
+// Testing Stuf
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
+
+import java.util.Random;
+import java.util.Arrays;
 import java.lang.Math;
 
 
@@ -19,13 +22,6 @@ public class PitchFinder {
 	private static final int WAV_FREQ = 44100;
 	private static final Random RNG = new Random(19890528L);
 
-	private static void save_array(String filename, double[] xs) throws FileNotFoundException {
-		PrintWriter out = new PrintWriter(filename);
-		for(int i=0; i<xs.length; i++) {
-			out.println(Double.toString(xs[i]));
-		}
-		out.close();
-	}
 
 	private static int array_max_index(double[] xs) {
 		int max_i = 0;
@@ -52,7 +48,6 @@ public class PitchFinder {
 		Complex c[] = transformer.transform(sample, TransformType.FORWARD);
 		// autocorrelate... maybe the first half?
 		Complex half_c[] = c; // Arrays.copyOfRange(c, 0, sample.length/2);
-		save_array("half_c.txt", abs(half_c));
 		half_c = transformer.transform(half_c, TransformType.FORWARD);
 		for(int i=0; i<half_c.length; i++) {
 			half_c[i] = half_c[i].multiply(half_c[i].conjugate());
@@ -65,8 +60,23 @@ public class PitchFinder {
 		double[] correlation = abs_squared_fft(sample);
 		correlation[0] = 0; // 0 doesn't count; it's perfectly correlated
 		int i = array_max_index(correlation);
-		//return i * WAV_FREQ / SAMPLE_COUNT;
-		return (double) i ;
+		return (double) i * WAV_FREQ / SAMPLE_COUNT;
+	}
+
+
+	private static void save_array(String filename, int[] xs) {
+		PrintWriter pout;
+		try {
+			pout = new PrintWriter(filename);
+
+			for(int i=0; i<xs.length; i++) {
+				pout.println(Integer.toString(xs[i]));
+			}
+			pout.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("Couldn't save file");
+			System.exit(1);
+		}
 	}
 
 
