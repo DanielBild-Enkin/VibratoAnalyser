@@ -5,8 +5,6 @@
  */
 package vibratoanalyser;
 
-import vibratoanalyser.PitchFinder;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;

@@ -22,6 +22,13 @@ public class PitchFinder {
 	private static final int WAV_FREQ = 44100;
 	private static final Random RNG = new Random(19890528L);
 
+	private static boolean doit = true;
+
+	private static void hanning_window(double[] xs) {
+		for (int i=0; i< xs.length; i++) {
+			xs[i] *= 0.5 * (1-Math.cos(2*Math.PI*i/(xs.length-1)));
+		}
+	}
 
 	private static int array_max_index(double[] xs) {
 		int max_i = 0;
@@ -46,6 +53,11 @@ public class PitchFinder {
 	private static double[] abs_squared_fft(double[] sample) {
 		// take fourier transform of audio sample
 		Complex c[] = transformer.transform(sample, TransformType.FORWARD);
+		if (doit && RNG.nextDouble() < 0.05) {
+			save_array("fourier_transform.txt", abs(c));
+			doit = false;
+		}
+		
 		// autocorrelate... maybe the first half?
 		Complex half_c[] = c; // Arrays.copyOfRange(c, 0, sample.length/2);
 		half_c = transformer.transform(half_c, TransformType.FORWARD);
@@ -64,13 +76,13 @@ public class PitchFinder {
 	}
 
 
-	private static void save_array(String filename, int[] xs) {
+	private static void save_array(String filename, double[] xs) {
 		PrintWriter pout;
 		try {
 			pout = new PrintWriter(filename);
 
 			for(int i=0; i<xs.length; i++) {
-				pout.println(Integer.toString(xs[i]));
+				pout.println(Double.toString(xs[i]));
 			}
 			pout.close();
 		} catch (FileNotFoundException e) {
