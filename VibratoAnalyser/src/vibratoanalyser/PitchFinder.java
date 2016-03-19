@@ -17,7 +17,7 @@ import java.lang.Math;
 public class PitchFinder {
 
     private static FastFourierTransformer transformer = new FastFourierTransformer(DftNormalization.STANDARD);
-    private static final int SAMPLE_COUNT = 2048;
+    public static final int SAMPLE_COUNT = 2048;
     private static final int WAV_FREQ = 44100;
     private static final Random RNG = new Random(19890528L);
 
@@ -48,20 +48,40 @@ public class PitchFinder {
         }
         return m;
     }
-    
-    private static Complex[] fftshift(Complex[] c){
-        
+
+    private static Complex[] fftshift(Complex[] c) {
+
         Complex shiftC[] = new Complex[c.length];
         System.arraycopy(c, c.length / 2, shiftC, 0, c.length / 2);
         System.arraycopy(c, 0, shiftC, c.length / 2, c.length / 2);
-        
-        return shiftC;        
+
+        return shiftC;
     }
 
     private static double[] autoCorrelateFft(double[] sample) {
         // take fourier transform of audio sample
+
+        hanning_window(sample);
         Complex c[] = transformer.transform(sample, TransformType.FORWARD);
 //        c[0] = new Complex(0);
+
+            for (int i = 0; i < 1; i++) {
+
+                c[i] = new Complex(0); // 0 doesn't count; it's perfectly correlated
+            };
+            
+            for (int i = 464; i < SAMPLE_COUNT/2+464; i++) {
+
+                c[i] = new Complex(0); // 0 doesn't count; it's perfectly correlated
+            };
+            
+            
+            for (int i = SAMPLE_COUNT-2; i < SAMPLE_COUNT-1; i++) {
+
+                c[i] = new Complex(0); // 0 doesn't count; it's perfectly correlated
+            };
+            
+            
 
         // autocorrelate... maybe the first half?
         Complex shiftC[] = fftshift(c);
@@ -71,10 +91,14 @@ public class PitchFinder {
             shiftC[i] = shiftC[i].multiply(shiftC[i].conjugate());
         }
         shiftC = transformer.transform(shiftC, TransformType.INVERSE);
-        
+
         if (doit && RNG.nextDouble() < 0.05) {
             save_array("fourier_transform.txt", abs(fftshift(c)));
-            save_array("correlate.txt", abs(shiftC));
+
+            
+
+            save_array("correlate.txt", abs(Arrays.copyOfRange(shiftC, 0, shiftC.length / 2)));
+            save_array("sample.txt", sample);
             doit = false;
         }
 
@@ -84,9 +108,13 @@ public class PitchFinder {
 
     public static double find_pitch(double[] sample) {
         double[] correlation = autoCorrelateFft(sample);
-        correlation[0] = 0; // 0 doesn't count; it's perfectly correlated
+        for (int i = 0; i < 5; i++) {
+
+            correlation[i] = 0; // 0 doesn't count; it's perfectly correlated
+        };
+
         int i = array_max_index(Arrays.copyOfRange(correlation, 0, correlation.length / 2));
-        return (double) i;//* WAV_FREQ / SAMPLE_COUNT;
+        return (double) i * WAV_FREQ / SAMPLE_COUNT;
     }
 
     private static void save_array(String filename, double[] xs) {
