@@ -5,7 +5,6 @@
  */
 package vibratoanalyser;
 
-import vibratoanalyser.PitchFinder;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,9 +13,6 @@ import java.nio.ByteBuffer;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
 
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
@@ -27,11 +23,9 @@ import java.io.FileNotFoundException;
  */
 public class VibratoAnalyser {
 
-	private final int BUFFER_SIZE = 128000;
 	private File soundFile;
 	private AudioInputStream audioStream;
 	private AudioFormat audioFormat;
-	private SourceDataLine sourceLine;
 
 	public VibratoAnalyser() {
 
@@ -63,22 +57,7 @@ public class VibratoAnalyser {
 			e.printStackTrace();
 			System.exit(1);
 		}
-
-		audioFormat = audioStream.getFormat();
-
-		DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
-		try {
-			sourceLine = (SourceDataLine) AudioSystem.getLine(info);
-			sourceLine.open(audioFormat);
-		} catch (LineUnavailableException e) {
-			e.printStackTrace();
-			System.exit(1);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
-		sourceLine.start();
-
+		
 		int nBytesRead = 0;
 		byte[] abData = new byte[1024 * 16];
 //
@@ -132,7 +111,7 @@ public class VibratoAnalyser {
 	public static void main(String[] args) {
 		// TODO code application logic here
 		VibratoAnalyser va = new VibratoAnalyser();
-		va.playSound("testdata/example_vibrato.wav");
+		va.playSound("/home/daniel/VibratoAnalyser/VibratoAnalyser/testdata//example_vibrato.wav");
 
 	}
 
