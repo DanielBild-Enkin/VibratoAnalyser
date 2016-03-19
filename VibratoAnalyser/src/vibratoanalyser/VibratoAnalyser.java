@@ -33,7 +33,7 @@ public class VibratoAnalyser {
 
 	public void playSound(String filename) {
 		VAFileSource audioFile;
-		audioFile = new VAFileSource(filename, 2048);
+		audioFile = new VAFileSource(filename, PitchFinder.SAMPLE_COUNT*2);
 
 		/* Read bytes from audio stream & find pitches */
 
@@ -45,8 +45,9 @@ public class VibratoAnalyser {
 		
 		abData = new byte[PitchFinder.SAMPLE_COUNT*2];
 		nBytesRead = 0;
-		
+		int iter = 0;
 		while (nBytesRead != -1) {
+                        
 			nBytesRead = audioFile.readInto(abData);
 			ints = toIntArray(abData);
 			//save_array("ints.txt", ints);
@@ -55,7 +56,8 @@ public class VibratoAnalyser {
 				doubles[i] = (double) ints[i];
 			}
 
-			System.out.println(PitchFinder.find_pitch(doubles));
+			System.out.println(PitchFinder.find_pitch(doubles,iter));
+                        iter++;
 		}
 	}
 
